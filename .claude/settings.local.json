@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(kill 31468)",
+      "Bash(awk '{print $2}')",
+      "Bash(xargs kill)",
+      "Bash(cmd.exe /c \"taskkill /F /PID 17032 2>&1 && taskkill /F /PID 16132 2>&1 && taskkill /F /PID 10268 2>&1\")",
+      "Bash(netstat -ano)"
+    ]
+  }
+}

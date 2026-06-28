@@ -1,0 +1,91 @@
+/* StockGod 暗色全局样式 */
+body {
+  margin: 0;
+  background: #0d0d1a;
+  color: rgba(255, 255, 255, 0.85);
+}
+#app {
+  min-height: 100vh;
+}
+
+/* 侧栏 logo */
+.sidebar-logo {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1677ff;
+  border-bottom: 1px solid #303030;
+}
+.sidebar-logo small {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.45);
+  margin-top: 2px;
+}
+
+/* 内容区 */
+.site-content {
+  margin: 16px;
+  min-height: calc(100vh - 64px - 32px);
+  background: transparent;
+}
+
+/* 统计卡片组 */
+.stat-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.stat-row .ant-card {
+  flex: 1;
+}
+
+/* 表格 */
+.ant-table-wrapper {
+  width: 100%;
+}
+
+/* 筛选栏 */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+/* 暗色主题 Ant Design 覆盖 */
+.ant-layout {
+  background: #0d0d1a;
+}
+.ant-layout-content {
+  background: transparent;
+}
+.ant-card {
+  background: #1a1a2e;
+  border-color: rgba(255, 255, 255, 0.06);
+}
+.ant-card-head {
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.85);
+}
+.ant-table {
+  background: transparent;
+}
+.ant-table-thead > tr > th {
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 12px;
+}
+.ant-table-tbody > tr > td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.ant-table-tbody > tr:hover > td {
+  background: rgba(255, 255, 255, 0.02) !important;
+}
