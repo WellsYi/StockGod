@@ -147,8 +147,31 @@
 - **股票池管理前后端**：新建 `stocks.py` REST 路由（3 端点）+ `StockManager.vue` 页面（表格 + 添加/删除）
 - **股票池 JSON → MySQL 迁移**：新增 `stock_pool` 表、CRUD 函数，`stock_core.load_stocks/save_stocks` 改为 async DB 操作，所有调用方加 `await`
 - 修复 `check_vwap_break` 参数顺序 + `check_limit_alert` 参数缺失
-- 新增 `GET /api/test/signal` 测试端点用于验证推送链路
-- 模拟数据推送验证：MySQL 写入 ✅、API 查询 ✅、WebSocket 广播 ✅
+- 新增 `GET /api/test/signal` 测试端点走完整链路（MySQL + 钉钉 + WebSocket），验证通过
+- 模拟数据推送验证：MySQL 写入 ✅、API 查询 ✅、WebSocket 广播 ✅、钉钉推送 ✅
+- 项目准备上传 GitHub（`git init` + `.gitignore` 已就绪）
+
+> 阿杰说"记录一下爱" — 叫我"小茗"，协作愉快，一起把 StockGod 做好。
+
+## GitHub 仓库操作记录
+
+### 创建步骤
+1. 本地 `git init` 初始化仓库
+2. `git add .` 暂存所有文件（`.gitignore` 已过滤 `node_modules/`、`.env`、`__pycache__/`、`data/*` 等）
+3. `git commit -m "init: StockGod 项目初始化"`
+4. GitHub 新建仓库 `StockGod`（不勾选 README/LICENSE/.gitignore）
+5. `git remote add origin https://github.com/<用户名>/StockGod.git`
+6. `git branch -M main && git push -u origin main`
+
+### 后续推送
+```bash
+git add .
+git commit -m "描述修改内容"
+git push
+```
+密码用 Personal Access Token（GitHub → Settings → Developer settings → Personal access tokens）。
+
+> 详细步骤见 README.md 末尾的「GitHub 仓库创建与代码上传」章节。
 
 **2026-06-28（第2轮）：**
 - **UI 框架迁移：手写 CSS → Ant Design Vue 4**

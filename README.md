@@ -140,6 +140,45 @@ curl http://127.0.0.1:8000/api/test/signal
 
 前端 Dashboard 的实时异动流会收到一条测试信号。
 
+## GitHub 仓库创建与代码上传
+
+### 前提条件
+- 注册 GitHub 账号（https://github.com）
+- 本地安装 Git（Git Bash 自带）
+
+### 步骤
+
+```bash
+# 1. 进入项目目录并初始化 git
+cd /f/projects/StockGod
+git init
+
+# 2. 添加所有文件到暂存区（.gitignore 已过滤敏感文件）
+git add .
+
+# 3. 查看哪些文件会被提交（可选）
+git status
+
+# 4. 创建第一个提交
+git commit -m "init: StockGod 项目初始化
+
+FastAPI + MySQL + WebSocket + Vue 3 + Ant Design Vue"
+
+# 5. 浏览器打开 https://github.com/new 新建仓库
+#    仓库名填 StockGod，其他默认，不要勾选任何选项
+#    点 "Create repository"
+
+# 6. 关联远程仓库并推送
+git remote add origin https://github.com/你的用户名/StockGod.git
+git branch -M main
+git push -u origin main
+```
+
+### 注意事项
+- `.gitignore` 已配置好，`node_modules/`、`.env`、`__pycache__/`、`data/`（保留目录结构）、`logs/` 等不会上传
+- 如果第二次推送，只需要 `git add .` → `git commit -m "xxx"` → `git push`
+- 如果需要输入用户名密码，用 Personal Access Token 代替密码（GitHub 设置 → Developer settings → Personal access tokens）
+
 ### 常见启动问题
 
 | 问题 | 原因 | 解决 |
