@@ -48,3 +48,12 @@ onMounted(load)
     <div v-if="!rows.length && !loading" style="text-align:center;padding:48px 0;color:rgba(255,255,255,.45)">暂无动态</div>
   </div>
 </template>
+
+<style scoped>
+:deep(.ant-card-meta-title) {
+  color: var(--text-primary) !important;
+}
+:deep(.ant-card-meta-description) {
+  color: var(--text-secondary) !important;
+}
+</style>

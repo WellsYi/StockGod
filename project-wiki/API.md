@@ -58,8 +58,26 @@ Base URL: `http://localhost:8000/api`
 ### `GET /api/signals?date=&code=&type=&page=1&size=20`
 信号历史列表，支持按日期/股票代码/信号类型筛选，分页。
 
-### `GET /api/signals/types`
-信号类型列表（前端下拉框用）。
+### `GET /api/signals/{id}`
+查询单条信号详情，含 `llm_analysis` 字段。
+
+### `POST /api/signals/{id}/analyze`
+手动触发单条信号的 LLM 解读。已有解读则直接返回，没有则调用 DeepSeek 生成后写入 DB。
+
+```json
+// Response
+{
+  "id": 7,
+  "stock_code": "600519",
+  "stock_name": "贵州茅台",
+  "signal_type": "站上分时均线",
+  "price": 1194.96,
+  "change_pct": 2.25,
+  "llm_analysis": "**贵州茅台（600519）**站上分时均线...",
+  "trigger_time": "2026-06-30T00:00:13",
+  "signal_detail": {...}
+}
+```
 
 ```json
 ["异常放量拉升", "盘中急涨", "盘中急跌", "VWAP突破", "逼近涨停", "连续拉升", "连续砸盘"]
@@ -174,6 +192,12 @@ RAG 智能问答。
 // B站推送
 { "type": "bili", "data": { "author": "UP主", "content": "...", "link": "...", "time": "..." } }
 ```
+
+### `GET /api/test/signal`
+推送一条模拟股票信号（平安银行/异常放量，走 MySQL + 钉钉 + WebSocket 完整链路）。
+
+### `GET /api/test/batch`
+批量推送 4 条不同信号的模拟数据（贵州茅台异动放量、宁德时代VWAP突破、海康威视连续拉升、隆基绿能逼近涨停），走完整 MySQL + WebSocket 链路。用于前端实时异动流测试。
 
 ---
 

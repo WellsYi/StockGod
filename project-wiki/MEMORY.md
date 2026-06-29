@@ -7,7 +7,7 @@
 
 ---
 
-## 📋 当前快照（2026-06-29）
+## 📋 当前快照（2026-06-30 晚）
 
 ### 🎯 项目定位
 下一代股票盯盘 + B站监控 + 涨停分析系统。
@@ -51,7 +51,9 @@
 | RAG | DeepSeek embedding 走 API | 不占本地资源 |
 | Embedding | DeepSeek text-embedding-v2 | 已有 Key，省事 |
 | 监控架构 | asyncio.Queue + consumer | 解耦监控与写入，防积压 |
-| 前端 UI | Ant Design Vue 4 | 暗色主题，全局注册 a- 前缀组件 |
+| 前端 UI | Ant Design Vue 4 | 高级暗色量化仪表盘风格 |
+| LLM 信号分析 | 入队前批量分析，结果挂 SignalEvent | stock_monitor分离收集→LLM→入队三步 |
+| LLM 涨停分析 | 分析完后同步入库 | limit_up分析完直接crud.upsert_limit_up |
 
 ### 📐 活跃约定
 - **新旧共存**：原项目 `F:\projects\stock\` 不变，StockGod 在 `F:\projects\StockGod\`
@@ -151,6 +153,45 @@
 - 模拟数据推送验证：MySQL 写入 ✅、API 查询 ✅、WebSocket 广播 ✅、钉钉推送 ✅
 - 项目准备上传 GitHub（`git init` + `.gitignore` 已就绪）
 
+**2026-06-29（第4轮）：**
+- **信号历史 + 涨停分析详情完善**：
+  - Signals.vue：点击行打开右侧抽屉，展示基本信息、技术参数（量比/成交额/换手率）、准确率追踪（判定标签 + 各时段价格）、LLM 解读全文
+  - LimitUp.vue：新增"原因"列展示原因标签，点击行打开抽屉展示概念板块、原因标签、LLM 涨停原因全文
+  - 后端新增 `GET /api/limit-up/{id}` 涨停详情端点 + `crud.get_limit_up`
+  - 修复 `a-table` 行点击事件（`@rowClick` → `:customRow`）
+
+**2026-06-30（第5轮）：**
+- **全局暗色量化仪表盘重设计**：
+  - 设计系统：午夜深蓝 `#0A0E1A` 背景 + 电蓝 `#00D4FF` 主色 + 翡翠绿 `#00E676` 涨 + 红 `#FF4444` 跌
+  - 引入 Inter/JetBrains Mono 字体，CSS 变量系统
+  - 侧栏：渐变深色 + 发光描边 + Logo 渐变文字 + 激活项电蓝紫渐变
+  - 顶部栏：90% 透明度毛玻璃 + WS 脉冲绿点
+  - KPI 卡片：`rgba(255,255,255,0.04)` 毛玻璃 + backdrop-blur + 顶部渐变发光 + 悬停抬起
+  - 实时流空状态：雷达脉冲动画 + 网格背景 + 闪烁光标
+  - 分布条：圆角胶囊渐变 + 右侧模糊光晕
+  - 表格：深色覆盖统一风格 + 悬停电蓝高亮 + 彩色信号徽章 + ▲▼ 涨幅箭头
+  - 后台任务：code pill + 脉冲绿点 RUNNING + 扫描进度条 + 发光停止按钮
+  - 其他 6 页面统一适配暗色主题
+- **修复表格 customRender 返回 HTML 字符串 → h() VNode**（之前返回字符串被当纯文本显示）
+
+- **LLM 解读持久化修复**：
+  - stock_monitor.py：信号 LLM 分析从入队后改到入队前，结果挂 SignalEvent 带走
+  - limit_up.py：涨停 LLM 分析后写入 limit_up_daily 表（修复 TODO）
+  - 新增 `POST /api/signals/{id}/analyze` 手动触发信号分析端点
+  - 新增 `crud.update_signal_llm()` 函数
+  - 前端 Signals.vue LLM 区加"生成解读"按钮
+  - 前端 Dashboard.vue 表格行点击打开信号详情抽屉
+
+- **⚠️ 已知问题：uvicorn --reload 在 Windows 上可能不加载新增路由**，需要完全 kill 进程后冷启动
+
+**2026-06-30（第6轮 — 端到端链路测试）：**
+- **LLM 全链路测试**：DeepSeek API 联通正常，涨停原因分析 / 信号解读 / B站摘要 / 批量分析 4 个业务函数全部返回正确中文结果
+- **模拟信号推送验证**：通过 `GET /api/test/signal` 发送平安银行异动信号，MySQL 写入 ✅、API 查询 ✅、钉钉推送 ✅
+- **实时异动流前端验证**：新建 `GET /api/test/batch` 批量测试端点，发送 4 条不同信号类型
+- **发现问题：实时异动流不回溯历史** — `liveFeed` 是纯内存数组，只存 WS 连接后新推送的消息，页面刷新/切换后之前的数据消失
+- **发现问题：uvicorn --reload 卡死后路由不识别** — 多进程抢占 8000 端口，需 `taskkill -f -pid` 全部清理才能冷启动
+- **B站动态链路确认**：B站看板数据获取正常、钉钉推送正常，但实时流未展示（原因同上）
+
 > 阿杰说"记录一下爱" — 叫我"小茗"，协作愉快，一起把 StockGod 做好。
 
 ## GitHub 仓库操作记录
@@ -192,7 +233,7 @@ git push
 - [x] 异动看板 Dashboard（实时异动流 + 信号类型分布 + KPI 卡片 + 任务控制）
 - [x] 股票池管理（增删 + MySQL + 前端界面）
 - [x] B站动态 + 监控状态（已完成）
-- [ ] 信号历史 + 涨停分析详情
+- [x] 信号历史 + 涨停分析详情
 - [ ] RAG 问答界面（占位）
 
 ### Phase 3 涨停分析（~3天，模块已预写）

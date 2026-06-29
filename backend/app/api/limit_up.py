@@ -5,7 +5,7 @@
 from datetime import date
 from typing import Annotated
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query
 
 from app.db import crud
 
@@ -20,3 +20,12 @@ async def list_limit_up(
     """涨停板列表"""
     rows = await crud.list_limit_up(trade_date=trade_date, limit=limit)
     return rows
+
+
+@router.get("/limit-up/{item_id}")
+async def get_limit_up(item_id: int):
+    """涨停单条详情"""
+    row = await crud.get_limit_up(item_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="记录不存在")
+    return row

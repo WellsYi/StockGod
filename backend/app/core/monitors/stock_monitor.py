@@ -22,6 +22,7 @@ async def _monitor_loop():
 
     state = sc.load_state()
     signals_batch = []
+    pending_signals = []  # 暂存待入队信号（携带行情数据）
 
     for item in stocks:
         code = item.get("code", "")
@@ -48,32 +49,27 @@ async def _monitor_loop():
             except Exception as e:
                 print(f"  {code} 信号检测异常: {e}")
 
-        # 有信号 → 压入队列
+        # 收集信号（暂不入队）
         for alert in alerts:
-            # LLM 分析（异步批量）
             signals_batch.append({
                 "name": name, "code": code, "price": q["now"],
                 "change_pct": q["change_pct"],
                 "signal_type": alert["signal_type"],
                 "detail": alert["detail"],
             })
-
-            await signal_queue.push(signal_queue.SignalEvent(
-                stock_code=code,
-                stock_name=name,
-                signal_type=alert["signal_type"],
-                price=q["now"],
-                change_pct=q["change_pct"],
-                signal_detail={
+            pending_signals.append({
+                "code": code, "name": name, "price": q["now"],
+                "change_pct": q["change_pct"],
+                "signal_type": alert["signal_type"],
+                "signal_detail": {
                     "ratio": q.get("quantity_ratio"),
                     "turnover": q.get("turnover_rate"),
                     "amount": q.get("amount"),
                 },
-                push_title=f"{'🚨' if '砸盘' in alert['signal_type'] else '⚡'} {name} {alert['signal_type']}",
-                push_content=alert["content"],
-            ))
+                "content": alert.get("content", ""),
+            })
 
-        # 定时简报
+        # 定时简报（直接推送，无需LLM）
         now_slot = datetime.now().strftime("%H%M")
         if now_slot in sc.BRIEF_SLOTS and not st["briefs_sent"].get(now_slot):
             daily_bars = await sc.fetch_daily_klines(code, market)
@@ -92,12 +88,27 @@ async def _monitor_loop():
                 st["briefs_sent"][now_slot] = True
 
     # 批量 LLM 分析
+    analyses: list[str] = []
     if signals_batch and config.LLM_API_KEY:
         try:
             analyses = await llm.batch_analyze_signals(signals_batch)
-            # TODO: 将 analyses 更新到对应信号记录（需要关联方式）
         except Exception as e:
             print(f"  [监控] 批量LLM分析失败: {e}")
+
+    # 将信号（携带 LLM 解读）入队
+    for i, s in enumerate(pending_signals):
+        llm_text = analyses[i] if i < len(analyses) else None
+        await signal_queue.push(signal_queue.SignalEvent(
+            stock_code=s["code"],
+            stock_name=s["name"],
+            signal_type=s["signal_type"],
+            price=s["price"],
+            change_pct=s["change_pct"],
+            signal_detail=s["signal_detail"],
+            llm_analysis=llm_text,
+            push_title=f"{'🚨' if '砸盘' in s['signal_type'] else '⚡'} {s['name']} {s['signal_type']}",
+            push_content=s["content"],
+        ))
 
     sc.save_state(state)
 

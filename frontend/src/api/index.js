@@ -12,6 +12,10 @@ export function getSignal(id) {
   return http.get(`/signals/${id}`).then(r => r.data)
 }
 
+export function analyzeSignal(id) {
+  return http.post(`/signals/${id}/analyze`).then(r => r.data)
+}
+
 export function countSignalsToday() {
   return http.get('/signals/today').then(r => r.data)
 }
@@ -40,6 +44,10 @@ export function getBili(dynamicId) {
 
 export function listLimitUp(params) {
   return http.get('/limit-up', { params }).then(r => r.data)
+}
+
+export function getLimitUp(id) {
+  return http.get(`/limit-up/${id}`).then(r => r.data)
 }
 
 // ── 监控 ──

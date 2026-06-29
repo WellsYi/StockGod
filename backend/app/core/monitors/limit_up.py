@@ -237,6 +237,22 @@ async def run_daily_check():
     msg = build_push_message(stocks)
     await dingtalk.send_stock(f"📊 今日涨停 {len(stocks)} 只", msg)
 
-    # 4. 入库（TODO: 等MySQL模块就绪后写入 limit_up_daily 表）
+    # 4. 入库
+    from app.db import crud
+    for s in stocks:
+        await crud.upsert_limit_up(
+            trade_date=today,
+            stock_code=s["code"],
+            stock_name=s["name"],
+            price=s["price"],
+            change_pct=s["change_pct"],
+            turnover_rate=s.get("turnover_rate"),
+            fd_amount=s.get("amount"),
+            limit_times=s.get("limit_times", 1),
+            board_type=s.get("board_type"),
+            reason_llm=s.get("reason_llm"),
+            reason_tags=s.get("reason_tags"),
+            concept_tags=s.get("concept_tags"),
+        )
 
     print(f"[涨停] 完成，今日 {len(stocks)} 只涨停")

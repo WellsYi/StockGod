@@ -115,6 +115,34 @@ async def test_signal():
     return {"ok": True, "message": "信号已推送（MySQL + 钉钉 + WebSocket）"}
 
 
+@app.get("/api/test/batch")
+async def test_batch():
+    """批量推送多条模拟信号（不同股票、不同类型）"""
+    from app.core.signal_queue import SignalEvent, _handle_signal
+
+    events = [
+        SignalEvent("600519", "贵州茅台", "异动放量", 1580.0, 6.8,
+            {"volume_ratio": 4.2, "reason": "季报超预期"},
+            "季报超预期推动资金抢筹，量比4.2倍，主力净流入8.5亿",
+            "异动信号", "**贵州茅台**（600519）\n\n信号：异动放量\n价格：**1580.00**\n涨幅：**+6.80%**\n量比：**4.2**"),
+        SignalEvent("300750", "宁德时代", "VWAP突破", 245.6, 4.5,
+            {"vwap_distance": 2.3, "reason": "新能源政策利好"},
+            "股价站稳VWAP上方，新能源板块集体走强，北向资金持续加仓",
+            "信号提醒", "**宁德时代**（300750）\n\n信号：VWAP突破\n价格：**245.60**\n涨幅：**+4.50%**"),
+        SignalEvent("002415", "海康威视", "连续拉升", 35.8, 5.2,
+            {"volume_ratio": 3.8, "reason": "AI概念带动"},
+            "连续30分钟放量拉升，AI概念热度升温，短线资金持续流入",
+            "异动信号", "**海康威视**（002415）\n\n信号：连续拉升\n价格：**35.80**\n涨幅：**+5.20%**"),
+        SignalEvent("601012", "隆基绿能", "逼近涨停", 28.9, 9.8,
+            {"limit_distance": 0.2, "reason": "光伏板块爆发"},
+            "涨幅9.8%逼近涨停，光伏板块整体涨幅超5%，封单资金2.3亿",
+            "涨停预警", "**隆基绿能**（601012）\n\n信号：逼近涨停\n价格：**28.90**\n涨幅：**+9.80%**"),
+    ]
+    for ev in events:
+        await _handle_signal(ev)
+    return {"ok": True, "message": f"已推送 {len(events)} 条模拟信号（MySQL + WS）"}
+
+
 @app.get("/api/health")
 async def health():
     """健康检查"""

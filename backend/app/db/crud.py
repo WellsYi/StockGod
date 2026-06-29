@@ -68,6 +68,15 @@ async def get_signal(signal_id: int) -> dict | None:
             return _row_to_dict(cur, row) if row else None
 
 
+async def update_signal_llm(signal_id: int, llm_analysis: str) -> bool:
+    """更新信号的 LLM 解读"""
+    sql = f"UPDATE {TBL_SIGNALS} SET llm_analysis = %s WHERE id = %s"
+    async with pool.get_conn() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(sql, (llm_analysis, signal_id))
+            return cur.rowcount > 0
+
+
 async def count_signals_today() -> int:
     sql = f"SELECT COUNT(*) FROM {TBL_SIGNALS} WHERE DATE(trigger_time) = CURDATE()"
     async with pool.get_conn() as conn:
@@ -279,6 +288,15 @@ async def list_limit_up(trade_date: date | None = None, limit: int = 50) -> list
             await cur.execute(sql, params)
             rows = await cur.fetchall()
             return [_row_to_dict(cur, r) for r in rows]
+
+
+async def get_limit_up(item_id: int) -> dict | None:
+    sql = f"SELECT * FROM {TBL_LIMIT_UP_DAILY} WHERE id = %s"
+    async with pool.get_conn() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(sql, (item_id,))
+            row = await cur.fetchone()
+            return _row_to_dict(cur, row) if row else None
 
 
 # ============================================================

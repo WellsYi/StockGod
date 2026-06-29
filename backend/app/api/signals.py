@@ -8,6 +8,7 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, Query
 
 from app.db import crud
+from app.core.llm import client as llm
 
 router = APIRouter(prefix="/api", tags=["signals"])
 
@@ -44,6 +45,31 @@ async def get_signal(signal_id: int):
     row = await crud.get_signal(signal_id)
     if not row:
         raise HTTPException(status_code=404, detail="信号不存在")
+    return row
+
+
+# ── LLM 解读 ──
+
+
+@router.post("/signals/{signal_id}/analyze")
+async def analyze_signal(signal_id: int):
+    """手动触发单条信号的 LLM 解读"""
+    row = await crud.get_signal(signal_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="信号不存在")
+    if not row.get("llm_analysis"):
+        # 调用 LLM 生成解读
+        detail_str = str(row.get("signal_detail", {}))
+        analysis = await llm.analyze_stock_signal(
+            name=row["stock_name"],
+            code=row["stock_code"],
+            price=row["price"],
+            change_pct=row["change_pct"],
+            signal_type=row["signal_type"],
+            detail=detail_str,
+        )
+        await crud.update_signal_llm(signal_id, analysis)
+        row["llm_analysis"] = analysis
     return row
 
 
